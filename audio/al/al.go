@@ -7,11 +7,11 @@
 package al
 
 /*
-#cgo darwin   CFLAGS:  -DGO_DARWIN  -I/usr/local/opt/openal-soft/include/AL -I/usr/include/AL
+#cgo darwin   CFLAGS:  -DGO_DARWIN  -I/Users/Sim/homebrew/Cellar/openal-soft/1.18.2/include/AL
 #cgo freebsd  CFLAGS:  -DGO_FREEBSD -I/usr/local/include/AL
 #cgo linux    CFLAGS:  -DGO_LINUX   -I/usr/include/AL
 #cgo windows  CFLAGS:  -DGO_WINDOWS -I${SRCDIR}/../windows/openal-soft-1.18.2/include/AL
-#cgo darwin   LDFLAGS: -L/usr/local/opt/openal-soft/lib -lopenal
+#cgo darwin   LDFLAGS: -L/Users/Sim/homebrew/Cellar/openal-soft/1.18.2/lib -lopenal
 #cgo freebsd  LDFLAGS: -L/usr/local/lib -lopenal
 #cgo linux    LDFLAGS: -lopenal
 #cgo windows  LDFLAGS: -L${SRCDIR}/../windows/bin -lOpenAL32
