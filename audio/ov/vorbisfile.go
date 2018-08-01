@@ -6,11 +6,11 @@
 // The libvorbisfile C API reference is at: https://xiph.org/vorbis/doc/vorbisfile/reference.html
 package ov
 
-// #cgo darwin   CFLAGS:  -DGO_DARWIN  -I/usr/include/vorbis -I/usr/local/include/vorbis
+// #cgo darwin   CFLAGS:  -DGO_DARWIN  -I/Users/Sim/homebrew/Cellar/libvorbis/1.3.6/include/vorbis -I/Users/Sim/homebrew/Cellar/libogg/1.3.3/include
 // #cgo freebsd  CFLAGS:  -DGO_FREEBSD -I/usr/include/vorbis -I/usr/local/include/vorbis
 // #cgo linux    CFLAGS:  -DGO_LINUX   -I/usr/include/vorbis
 // #cgo windows  CFLAGS:  -DGO_WINDOWS -I${SRCDIR}/../windows/libvorbis-1.3.5/include/vorbis -I${SRCDIR}/../windows/libogg-1.3.3/include
-// #cgo darwin   LDFLAGS: -L/usr/lib -L/usr/local/lib -lvorbisfile
+// #cgo darwin   LDFLAGS: -L/Users/Sim/homebrew/Cellar/libvorbis/1.3.6/lib -lvorbisfile
 // #cgo freebsd  LDFLAGS: -L/usr/lib -L/usr/local/lib -lvorbisfile
 // #cgo linux    LDFLAGS: -lvorbisfile
 // #cgo windows  LDFLAGS: -L${SRCDIR}/../windows/bin -llibvorbisfile
