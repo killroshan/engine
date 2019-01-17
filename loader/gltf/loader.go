@@ -19,6 +19,7 @@ import (
 	"strings"
 	"unsafe"
 
+	"github.com/g3n/engine/animation"
 	"github.com/g3n/engine/camera"
 	"github.com/g3n/engine/core"
 	"github.com/g3n/engine/geometry"
@@ -27,7 +28,6 @@ import (
 	"github.com/g3n/engine/material"
 	"github.com/g3n/engine/math32"
 	"github.com/g3n/engine/texture"
-	"github.com/g3n/engine/animation"
 )
 
 // ParseJSON parses the glTF data from the specified JSON file
@@ -182,7 +182,7 @@ func (g *GLTF) NewNode(i int) (core.INode, error) {
 
 	// Check if the node is a Mesh (triangles, lines, etc...)
 	if nodeData.Mesh != nil {
-		in, err = g.NewMesh(*nodeData.Mesh)
+		in, err = g.NewMesh(*nodeData.Mesh, nodeData.Skin)
 		if err != nil {
 			return nil, err
 		}
@@ -336,7 +336,7 @@ func (g *GLTF) NewCamera(ci int) (core.INode, error) {
 
 // NewMesh creates and returns a Graphic Node (graphic.Mesh, graphic.Lines, graphic.Points, etc)
 // from the specified GLTF.Meshes index.
-func (g *GLTF) NewMesh(mi int) (core.INode, error) {
+func (g *GLTF) NewMesh(mi int, skin *int) (core.INode, error) {
 
 	log.Debug("Loading Mesh %d", mi)
 
@@ -411,9 +411,16 @@ func (g *GLTF) NewMesh(mi int) (core.INode, error) {
 
 		// Create Mesh
 		if mode == TRIANGLES {
-			primitiveMesh := graphic.NewMesh(igeom, nil)
-			primitiveMesh.AddMaterial(grMat, 0, 0)
-			meshNode.Add(primitiveMesh)
+			if skin == nil {
+				primitiveMesh := graphic.NewMesh(igeom, nil)
+				primitiveMesh.AddMaterial(grMat, 0, 0)
+				meshNode.Add(primitiveMesh)
+			} else {
+				skinnedMesh := graphic.NewSkinnedMesh(igeom, nil)
+				grMat.GetMaterial().SetSkinned(true)
+				skinnedMesh.AddMaterial(grMat, 0, 0)
+				meshNode.Add(skinnedMesh)
+			}
 		} else if mode == LINES {
 			meshNode.Add(graphic.NewLines(igeom, grMat))
 		} else if mode == LINE_STRIP {
@@ -505,7 +512,7 @@ func (g *GLTF) addAttributeToVBO(vbo *gls.VBO, attribName string, byteOffset uin
 		vbo.AddAttribOffset(gls.VertexTangent, byteOffset)
 	} else if attribName == "TEXCOORD_0" {
 		vbo.AddAttribOffset(gls.VertexTexcoord, byteOffset)
-	} else if attribName == "COLOR_0" {	// TODO glTF spec says COLOR can be VEC3 or VEC4
+	} else if attribName == "COLOR_0" { // TODO glTF spec says COLOR can be VEC3 or VEC4
 		vbo.AddAttribOffset(gls.VertexColor, byteOffset)
 	} else if attribName == "JOINTS_0" {
 		// TODO

@@ -84,6 +84,7 @@ type Material struct {
 	blendDstRGB      uint32                 // separate blend func dest RGB
 	blendSrcAlpha    uint32                 // separate blend func source Alpha
 	blendDstAlpha    uint32                 // separate blend func dest Alpha
+	Skinned bool // weather use skinned animation
 }
 
 // NewMaterial creates and returns a pointer to a new Material.
@@ -248,6 +249,10 @@ func (mat *Material) SetPolygonOffset(factor, units float32) {
 
 	mat.polyOffsetFactor = factor
 	mat.polyOffsetUnits = units
+}
+
+func (mat *Material) SetSkinned(skinned bool){
+	mat.Skinned = skinned
 }
 
 // RenderSetup is called by the renderer before drawing objects with this material.

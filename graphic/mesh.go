@@ -12,12 +12,57 @@ import (
 	"github.com/g3n/engine/math32"
 )
 
+type Skeleton struct {
+	Bones               []core.INode
+	BoneMatricesInverse []math32.Matrix4
+}
+
+func (s *Skeleton) NewSkeleton(bones []core.INode, matricesInverse []math32.Matrix4) {
+	if len(bones) != len(matricesInverse) {
+		panic("bones and matricesinverse mismatch")
+	}
+	s.Bones = bones
+	s.BoneMatricesInverse = matricesInverse
+}
+
+func (s *Skeleton) update(){
+	for i, bone := range(s.Bones){
+		s.BoneMatricesInverse[i] = bone.GetNode().MatrixWorld()
+	}
+}
+
 // Mesh is a Graphic with uniforms for the model, view, projection, and normal matrices.
 type Mesh struct {
 	Graphic             // Embedded graphic
 	uniMVm  gls.Uniform // Model view matrix uniform location cache
 	uniMVPm gls.Uniform // Model view projection matrix uniform cache
 	uniNm   gls.Uniform // Normal matrix uniform cache
+}
+
+// mesh which support skinned animation
+type SkinnedMesh struct {
+	Mesh
+	Skeleton          *Skeleton
+	BindMatrix        math32.Matrix4
+	BindMatrixInverse math32.Matrix4
+}
+
+func NewSkinnedMesh(igeom geometry.IGeometry, imat material.IMaterial) *SkinnedMesh {
+	sm := new(SkinnedMesh)
+	sm.Init(igeom, imat)
+	return sm
+}
+
+func (sm *SkinnedMesh) Bind(skeleton *Skeleton) {
+	sm.BindMatrix = sm.MatrixWorld()
+	sm.BindMatrixInverse.GetInverse(&sm.BindMatrix)
+	sm.Skeleton = skeleton
+}
+
+func (sm *SkinnedMesh) Update() {
+	m := sm.MatrixWorld()
+	sm.BindMatrixInverse.GetInverse(&m)
+	sm.Skeleton.update()
 }
 
 // NewMesh creates and returns a pointer to a mesh with the specified geometry and material.
