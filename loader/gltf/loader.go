@@ -236,6 +236,31 @@ func (g *GLTF) NewNode(i int) (core.INode, error) {
 	return in, nil
 }
 
+func (g *GLTF) NewSkeleton(i int) (*graphic.Skeleton, error) {
+	log.Debug("Loading Skeleton %d", i)
+
+	if i < 0 || i >= len(g.Skins) {
+		return nil, fmt.Errorf("invalid skeleton index")
+	}
+
+	skinData := &g.Skins[i]
+	ibm, err := g.loadAccessorF32(skinData.InverseBindMatrices, "inversebindmatrices", []string{"MAT4"}, []int{FLOAT})
+	if err != nil {
+		return nil, err
+	}
+
+	bones := make([]core.INode, 0, len(skinData.Joints))
+	bonesinverse := make([]math32.Matrix4, 0, len(skinData.Joints))
+	for idx, nodeIdx := range skinData.Joints {
+		bones = append(bones, g.Nodes[nodeIdx].node)
+		var mat math32.Matrix4
+		mat.FromArray(ibm, idx*16)
+		bonesinverse = append(bonesinverse, mat)
+	}
+	skinData.skin = graphic.NewSkeleton(skinData.Name, bones, bonesinverse)
+	return skinData.skin, nil
+}
+
 // NewAnimation creates an Animation for the specified
 // the animation index from the GLTF Animations array.
 func (g *GLTF) NewAnimation(i int) (*animation.Animation, error) {
@@ -930,6 +955,21 @@ func (g *GLTF) loadBuffer(bi int) ([]byte, error) {
 	buf.data = data
 	log.Debug("cache data:%v", len(buf.data))
 	return data, nil
+}
+
+func (g *GLTF) BindSkeletion() {
+	for i := range g.Nodes {
+		node := &g.Nodes[i]
+		if node.Skin != nil {
+			skeleton := g.Skins[*node.Skin].skin
+			for _, child := range node.node.GetNode().Children() {
+				skinnedMesh, ok := child.(*graphic.SkinnedMesh)
+				if ok {
+					skinnedMesh.Bind(skeleton)
+				}
+			}
+		}
+	}
 }
 
 // dataURL describes a decoded data url string.

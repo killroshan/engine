@@ -13,21 +13,30 @@ import (
 )
 
 type Skeleton struct {
+	Name                string
 	Bones               []core.INode
 	BoneMatricesInverse []math32.Matrix4
+	BoneMatrices		[]math32.Matrix4
 }
 
-func (s *Skeleton) NewSkeleton(bones []core.INode, matricesInverse []math32.Matrix4) {
+func NewSkeleton(name string, bones []core.INode, matricesInverse []math32.Matrix4) *Skeleton {
 	if len(bones) != len(matricesInverse) {
 		panic("bones and matricesinverse mismatch")
 	}
-	s.Bones = bones
-	s.BoneMatricesInverse = matricesInverse
+
+	return &Skeleton{
+		Name:                name,
+		Bones:               bones,
+		BoneMatricesInverse: matricesInverse,
+		BoneMatrices: make([]math32.Matrix4, len(bones), len(bones)),
+	}
 }
 
-func (s *Skeleton) update(){
-	for i, bone := range(s.Bones){
-		s.BoneMatricesInverse[i] = bone.GetNode().MatrixWorld()
+func (s *Skeleton) update() {
+	for i, bone := range s.Bones {
+		var mat math32.Matrix4
+		mat = bone.GetNode().MatrixWorld()
+		s.BoneMatrices[i].MultiplyMatrices(&mat, &s.BoneMatricesInverse[i])
 	}
 }
 
@@ -59,10 +68,23 @@ func (sm *SkinnedMesh) Bind(skeleton *Skeleton) {
 	sm.Skeleton = skeleton
 }
 
-func (sm *SkinnedMesh) Update() {
-	m := sm.MatrixWorld()
-	sm.BindMatrixInverse.GetInverse(&m)
+func (sm *SkinnedMesh) AddGroupMaterial(imat material.IMaterial, gindex int) {
+	sm.Graphic.AddGroupMaterial(sm, imat, gindex)
+}
+
+func (sm *SkinnedMesh) AddMaterial(imat material.IMaterial, start, count int) {
+	sm.Graphic.AddMaterial(sm, imat, start, count)
+}
+
+func (sm *SkinnedMesh) RenderSetup(gs *gls.GLS, rinfo *core.RenderInfo) {
 	sm.Skeleton.update()
+	sm.Mesh.RenderSetup(gs, rinfo)
+}
+
+func (sm *SkinnedMesh) UpdateMatrixWorld() {
+	sm.Mesh.Graphic.Node.UpdateMatrixWorld()
+	temp := sm.MatrixWorld()
+	sm.BindMatrixInverse.GetInverse(&temp)
 }
 
 // NewMesh creates and returns a pointer to a mesh with the specified geometry and material.

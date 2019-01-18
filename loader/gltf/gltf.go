@@ -5,7 +5,10 @@
 // Package gltf
 package gltf
 
-import "github.com/g3n/engine/core"
+import (
+	"github.com/g3n/engine/core"
+	"github.com/g3n/engine/graphic"
+)
 
 // GLTF is the root object for a glTF asset.
 type GLTF struct {
@@ -280,13 +283,20 @@ type Skin struct {
 	Name                string                 // The user-define named of this object. Not required.
 	Extensions          map[string]interface{} // Dictionary object with extension-specific objects. Not required.
 	Extras              interface{}            // Application-specific data. Not required.
+
+	skin	*graphic.Skeleton  // cached for skeleton
 }
 
 // Sparse storage of attributes that deviate from their initialization value.
 type Sparse struct {
 	Count      int                    // Number of entries stored in the sparse array. Required.
-	Indices    []int                  // Index array of size count that points to those accessor attributes that deviate from their initialization value. Indices must strictly increase. Required.
-	Values     []int                  // Array of size count times number of components, storing the displaced accessor attributes pointed by indices. Substituted values must have the same componentType and number of components as the base accessor. Required.
+	Indices struct {
+		BufferView int
+		ComponentType int
+	}                  // Index array of size count that points to those accessor attributes that deviate from their initialization value. Indices must strictly increase. Required.
+	Values struct {
+		BufferView int
+	}                  // Array of size count times number of components, storing the displaced accessor attributes pointed by indices. Substituted values must have the same componentType and number of components as the base accessor. Required.
 	Extensions map[string]interface{} // Dictionary object with extension-specific objects. Not required.
 	Extras     interface{}            // Application-specific data. Not required.
 }
