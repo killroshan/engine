@@ -9,4 +9,4 @@ import (
 )
 
 // Package logger
-var log = logger.New("GLS", logger.Default)
+var log = logger.New("GLS", logger.Default).SetLevel(logger.WARN)

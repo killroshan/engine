@@ -19,6 +19,7 @@ const GLSL_VERSION = "330 core"
 
 // Regular expression to parse #include <name> [quantity] directive
 var rexInclude *regexp.Regexp
+
 const indexParameter = "{i}"
 
 func init() {
@@ -37,7 +38,8 @@ type ShaderSpecs struct {
 	PointLightsMax   int                // Current Number of point lights
 	SpotLightsMax    int                // Current Number of spot lights
 	MatTexturesMax   int                // Current Number of material textures
-	Defines          gls.ShaderDefines  // Additional shader defines
+	MaxBones         int
+	Defines          gls.ShaderDefines // Additional shader defines
 }
 
 // ProgSpecs represents a compiled shader program along with its specs
@@ -185,6 +187,7 @@ func (sm *Shaman) GenProgram(specs *ShaderSpecs) (*gls.Program, error) {
 	defines["POINT_LIGHTS"] = strconv.Itoa(specs.PointLightsMax)
 	defines["SPOT_LIGHTS"] = strconv.Itoa(specs.SpotLightsMax)
 	defines["MAT_TEXTURES"] = strconv.Itoa(specs.MatTexturesMax)
+	defines["MAX_BONES"] = strconv.Itoa(specs.MaxBones)
 
 	// Adds additional material and geometry defines from the specs parameter
 	for name, value := range specs.Defines {
@@ -245,7 +248,6 @@ func (sm *Shaman) GenProgram(specs *ShaderSpecs) (*gls.Program, error) {
 	return prog, nil
 }
 
-
 func (sm *Shaman) preprocess(source string, defines map[string]string) (string, error) {
 
 	// If defines map supplied, generate prefix with glsl version directive first,
@@ -258,9 +260,8 @@ func (sm *Shaman) preprocess(source string, defines map[string]string) (string, 
 		}
 	}
 
-	return sm.processIncludes(prefix + source, defines)
+	return sm.processIncludes(prefix+source, defines)
 }
-
 
 // preprocess preprocesses the specified source prefixing it with optional defines directives
 // contained in "defines" parameter and replaces '#include <name>' directives
@@ -348,6 +349,7 @@ func (ss *ShaderSpecs) equals(other *ShaderSpecs) bool {
 		ss.PointLightsMax == other.PointLightsMax &&
 		ss.SpotLightsMax == other.SpotLightsMax &&
 		ss.MatTexturesMax == other.MatTexturesMax &&
+		ss.MaxBones == other.MaxBones &&
 		ss.Defines.Equals(&other.Defines) {
 		return true
 	}

@@ -540,9 +540,9 @@ func (g *GLTF) addAttributeToVBO(vbo *gls.VBO, attribName string, byteOffset uin
 	} else if attribName == "COLOR_0" { // TODO glTF spec says COLOR can be VEC3 or VEC4
 		vbo.AddAttribOffset(gls.VertexColor, byteOffset)
 	} else if attribName == "JOINTS_0" {
-		// TODO
+		vbo.AddAttribOffset(gls.Joints, byteOffset)
 	} else if attribName == "WEIGHTS_0" {
-		// TODO
+		vbo.AddAttribOffset(gls.Weights, byteOffset)
 	} else {
 		panic(fmt.Sprintf("Attribute %v is not supported!", attribName))
 	}

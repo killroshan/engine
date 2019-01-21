@@ -105,12 +105,13 @@ func New(name string, parent *Logger) *Logger {
 // SetLevel sets the current level of this logger.
 // Only log messages with levels with the same or higher
 // priorities than the current level will be emitted.
-func (l *Logger) SetLevel(level int) {
+func (l *Logger) SetLevel(level int) *Logger{
 
 	if level < DEBUG || level > FATAL {
-		return
+		return l
 	}
 	l.level = level
+	return l
 }
 
 // SetLevelByName sets the current level of this logger by level name:

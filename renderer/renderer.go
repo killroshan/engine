@@ -307,7 +307,7 @@ func (r *Renderer) renderScene(iscene core.INode, icam camera.ICamera) error {
 				rO1 := gr1.RenderOrder()
 				rO2 := gr2.RenderOrder()
 				if rO1 != rO2 {
-					return  rO1 < rO2
+					return rO1 < rO2
 				}
 
 				mvm1 := gr1.ModelViewMatrix()
@@ -391,6 +391,10 @@ func (r *Renderer) renderScene(iscene core.INode, icam camera.ICamera) error {
 			r.specs.ShaderUnique = mat.ShaderUnique()
 			r.specs.UseLights = mat.UseLights()
 			r.specs.MatTexturesMax = mat.TextureCount()
+
+			if sk, ok := grmat.IGraphic().(*graphic.SkinnedMesh); ok {
+				r.specs.MaxBones = sk.MaxBones()
+			}
 
 			// Set active program and apply shader specs
 			_, err = r.shaman.SetProgram(&r.specs)

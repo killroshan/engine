@@ -37,6 +37,8 @@ const (
 	VertexTangent
 	VertexColor
 	VertexTexcoord
+	Joints
+	Weights
 )
 
 // Map from attribute type to default attribute name.
@@ -46,6 +48,8 @@ var attribTypeNameMap = map[AttribType]string{
 	VertexTangent:  "VertexTangent",
 	VertexColor:    "VertexColor",
 	VertexTexcoord: "VertexTexcoord",
+	Joints:         "Joints",
+	Weights:        "Weights",
 }
 
 // Map from attribute type to default attribute size.
@@ -54,6 +58,8 @@ var attribTypeSizeMap = map[AttribType]int32{
 	VertexNormal:   3,
 	VertexColor:    3,
 	VertexTexcoord: 2,
+	Joints:         4,
+	Weights:        4,
 }
 
 // Map from element type to element size (in bytes).
@@ -366,15 +372,15 @@ func (vbo *VBO) ReadTripleVectors3(attribType AttribType, cb func(vec1, vec2, ve
 	offset := vbo.AttribOffset(attribType)
 	positions := vbo.Buffer()
 
-	doubleStride := 2*stride
-	loopStride := 3*stride
+	doubleStride := 2 * stride
+	loopStride := 3 * stride
 
 	// Call callback for each vector3 triple
 	var vec1, vec2, vec3 math32.Vector3
 	for i := offset; i < positions.Size(); i += loopStride {
 		positions.GetVector3(i, &vec1)
-		positions.GetVector3(i + stride, &vec2)
-		positions.GetVector3(i + doubleStride, &vec3)
+		positions.GetVector3(i+stride, &vec2)
+		positions.GetVector3(i+doubleStride, &vec3)
 		brk := cb(vec1, vec2, vec3)
 		if brk {
 			break

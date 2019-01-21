@@ -16,7 +16,8 @@ type Skeleton struct {
 	Name                string
 	Bones               []core.INode
 	BoneMatricesInverse []math32.Matrix4
-	BoneMatrices		[]math32.Matrix4
+	BoneMatrices        []math32.Matrix4
+	uniBoneMatrices     gls.Uniform
 }
 
 func NewSkeleton(name string, bones []core.INode, matricesInverse []math32.Matrix4) *Skeleton {
@@ -28,7 +29,7 @@ func NewSkeleton(name string, bones []core.INode, matricesInverse []math32.Matri
 		Name:                name,
 		Bones:               bones,
 		BoneMatricesInverse: matricesInverse,
-		BoneMatrices: make([]math32.Matrix4, len(bones), len(bones)),
+		BoneMatrices:        make([]math32.Matrix4, len(bones), len(bones)),
 	}
 }
 
@@ -54,11 +55,16 @@ type SkinnedMesh struct {
 	Skeleton          *Skeleton
 	BindMatrix        math32.Matrix4
 	BindMatrixInverse math32.Matrix4
+
+	uniBind        gls.Uniform // Bind Matrix
+	uniBindInverse gls.Uniform // Bind Matrix Inverse
 }
 
 func NewSkinnedMesh(igeom geometry.IGeometry, imat material.IMaterial) *SkinnedMesh {
 	sm := new(SkinnedMesh)
 	sm.Init(igeom, imat)
+	sm.uniBind.Init("BindMatrix")
+	sm.uniBindInverse.Init("BindMatrixInverse")
 	return sm
 }
 
@@ -66,6 +72,7 @@ func (sm *SkinnedMesh) Bind(skeleton *Skeleton) {
 	sm.BindMatrix = sm.MatrixWorld()
 	sm.BindMatrixInverse.GetInverse(&sm.BindMatrix)
 	sm.Skeleton = skeleton
+	skeleton.uniBoneMatrices.Init("BoneMatrices")
 }
 
 func (sm *SkinnedMesh) AddGroupMaterial(imat material.IMaterial, gindex int) {
@@ -79,12 +86,31 @@ func (sm *SkinnedMesh) AddMaterial(imat material.IMaterial, start, count int) {
 func (sm *SkinnedMesh) RenderSetup(gs *gls.GLS, rinfo *core.RenderInfo) {
 	sm.Skeleton.update()
 	sm.Mesh.RenderSetup(gs, rinfo)
+
+	location := sm.uniBind.Location(gs)
+	gs.UniformMatrix4fv(location, 1, false, &sm.BindMatrix[0])
+
+	location = sm.uniBindInverse.Location(gs)
+	gs.UniformMatrix4fv(location, 1, false, &sm.BindMatrixInverse[0])
+
+
+	for idx, _ := range(sm.Skeleton.BoneMatrices) {
+		location = sm.Skeleton.uniBoneMatrices.LocationIdx(gs, int32(idx))
+		gs.UniformMatrix4fv(location, 1, false, &sm.Skeleton.BoneMatrices[idx][0])
+	}
+	//location = sm.Skeleton.uniBoneMatrices.Location(gs)
+	//gs.UniformMatrix4fv(location, int32(sm.MaxBones()), false, &sm.Skeleton.BoneMatrices[0][0])
+
 }
 
 func (sm *SkinnedMesh) UpdateMatrixWorld() {
 	sm.Mesh.Graphic.Node.UpdateMatrixWorld()
 	temp := sm.MatrixWorld()
 	sm.BindMatrixInverse.GetInverse(&temp)
+}
+
+func (sm *SkinnedMesh) MaxBones() int {
+	return len(sm.Skeleton.Bones)
 }
 
 // NewMesh creates and returns a pointer to a mesh with the specified geometry and material.
