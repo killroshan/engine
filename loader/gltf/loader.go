@@ -491,7 +491,7 @@ func (g *GLTF) loadAttributes(geom *geometry.Geometry, attributes map[string]int
 				if err != nil {
 					return err
 				}
-				data := g.bytesToArrayF32(buf, g.BufferViews[bvIdx].ByteLength)
+				data := g.bytesToArrayF32(buf, accessor.ComponentType, accessor.Count*TypeSizes[accessor.Type])
 				vbo := gls.NewVBO(data)
 				g.addAttributeToVBO(vbo, name, 0)
 				// Save reference to VBO keyed by index of the buffer view
@@ -504,7 +504,7 @@ func (g *GLTF) loadAttributes(geom *geometry.Geometry, attributes map[string]int
 			if err != nil {
 				return err
 			}
-			data := g.bytesToArrayF32(buf, accessor.Count*TypeSizes[accessor.Type])
+			data := g.bytesToArrayF32(buf, accessor.ComponentType, accessor.Count*TypeSizes[accessor.Type])
 			vbo := gls.NewVBO(data)
 			g.addAttributeToVBO(vbo, name, 0)
 			// Add VBO to geometry
@@ -776,9 +776,37 @@ func (g *GLTF) bytesToArrayU32(data []byte, componentType, count int) (math32.Ar
 }
 
 // bytesToArrayF32 converts a byte array to ArrayF32.
-func (g *GLTF) bytesToArrayF32(data []byte, size int) math32.ArrayF32 {
+func (g *GLTF) bytesToArrayF32(data []byte, componentType, size int) math32.ArrayF32 {
+	if componentType == FLOAT {
+		return (*[1 << 30]float32)(unsafe.Pointer(&data[0]))[:size]
+	}
 
-	return (*[1 << 30]float32)(unsafe.Pointer(&data[0]))[:size]
+	if componentType == UNSIGNED_SHORT {
+		out := math32.NewArrayF32(size, size)
+		for i := 0; i < size; i++ {
+			out[i] = float32(uint32(data[i*2]) + uint32(data[i*2+1])*256)
+		}
+		return out
+
+	}
+
+	if componentType == UNSIGNED_INT {
+		out := math32.NewArrayF32(size, size)
+		for i := 0; i < size; i++ {
+			out[i] = float32(data[i])
+		}
+		return out
+	}
+
+	if componentType == UNSIGNED_BYTE {
+		out := math32.NewArrayF32(size, size)
+		for i := 0; i < size; i++ {
+			out[i] = float32(data[i])
+		}
+		return out
+	}
+	panic(fmt.Sprintf("bytesToArrayF32 unsupport type %v", componentType))
+	return nil
 }
 
 // loadAccessorU32 loads data from the specified accessor and performs validation of the Type and ComponentType.
@@ -826,7 +854,7 @@ func (g *GLTF) loadAccessorF32(ai int, usage string, validTypes []string, validC
 		return nil, err
 	}
 
-	return g.bytesToArrayF32(data, ac.Count*TypeSizes[ac.Type]), nil
+	return g.bytesToArrayF32(data, ac.ComponentType ,ac.Count*TypeSizes[ac.Type]), nil
 }
 
 // loadAccessorBytes returns the base byte array used by an accessor.

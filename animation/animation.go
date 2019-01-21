@@ -95,7 +95,7 @@ func (anim *Animation) Update(delta float32) {
 	// Check if input is greater than maximum
 	if anim.time > anim.maxTime {
 		if anim.loop {
-			anim.time = anim.time - anim.maxTime
+			anim.time = anim.minTime
 		} else {
 			anim.time = anim.maxTime - 0.000001
 			anim.SetPaused(true)

@@ -94,12 +94,13 @@ func (sm *SkinnedMesh) RenderSetup(gs *gls.GLS, rinfo *core.RenderInfo) {
 	gs.UniformMatrix4fv(location, 1, false, &sm.BindMatrixInverse[0])
 
 
-	for idx, _ := range(sm.Skeleton.BoneMatrices) {
-		location = sm.Skeleton.uniBoneMatrices.LocationIdx(gs, int32(idx))
-		gs.UniformMatrix4fv(location, 1, false, &sm.Skeleton.BoneMatrices[idx][0])
-	}
-	//location = sm.Skeleton.uniBoneMatrices.Location(gs)
-	//gs.UniformMatrix4fv(location, int32(sm.MaxBones()), false, &sm.Skeleton.BoneMatrices[0][0])
+	//for idx, _ := range(sm.Skeleton.BoneMatrices) {
+	//	location = sm.Skeleton.uniBoneMatrices.LocationIdx(gs, int32(idx))
+	//	gs.UniformMatrix4fv(location, 1, false, &sm.Skeleton.BoneMatrices[idx][0])
+	//}
+
+	location = sm.Skeleton.uniBoneMatrices.Location(gs)
+	gs.UniformMatrix4fv(location, int32(sm.MaxBones()), false, &sm.Skeleton.BoneMatrices[0][0])
 
 }
 

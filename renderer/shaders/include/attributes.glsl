@@ -7,5 +7,7 @@ layout(location = 2) in  vec3  VertexColor;
 layout(location = 3) in  vec2  VertexTexcoord;
 layout(location = 4) in  float VertexDistance;
 layout(location = 5) in  vec4  VertexTexoffsets;
+layout(location = 6) in  vec4  Joints;
+layout(location = 7) in  vec4  Weights;
 
 

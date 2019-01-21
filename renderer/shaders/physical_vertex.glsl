@@ -9,6 +9,14 @@ uniform mat4 ModelViewMatrix;
 uniform mat3 NormalMatrix;
 uniform mat4 MVP;
 
+// skinned mesh
+uniform mat4 BindMatrix;
+uniform mat4 BindMatrixInverse;
+
+#if defined SKINNED
+    uniform mat4 BoneMatrices[MAX_BONES];
+#endif
+
 #include <morphtarget_vertex_declaration>
 
 // Output variables for Fragment shader
@@ -38,10 +46,20 @@ void main() {
     // #endif
     FragTexcoord = texcoord;
 
-    vec3 vPosition = VertexPosition;
+    vec4 transformed = (BindMatrix * vec4(VertexPosition, 1));
+    vec4 skinPos = vec4(0.0);
+
+    transformed = Weights.x * BoneMatrices[int(Joints.x)] * transformed +
+                  Weights.y * BoneMatrices[int(Joints.y)] * transformed +
+                  Weights.z * BoneMatrices[int(Joints.z)] * transformed +
+                  Weights.w * BoneMatrices[int(Joints.w)] * transformed;
+
+
+    transformed = BindMatrixInverse * transformed;
+
     #include <morphtarget_vertex> [MORPHTARGETS]
 
-    gl_Position = MVP * vec4(vPosition, 1.0);
+    gl_Position = MVP * transformed;
 }
 
 
