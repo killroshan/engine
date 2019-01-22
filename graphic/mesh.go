@@ -87,20 +87,9 @@ func (sm *SkinnedMesh) RenderSetup(gs *gls.GLS, rinfo *core.RenderInfo) {
 	sm.Skeleton.update()
 	sm.Mesh.RenderSetup(gs, rinfo)
 
-	location := sm.uniBind.Location(gs)
-	gs.UniformMatrix4fv(location, 1, false, &sm.BindMatrix[0])
-
-	location = sm.uniBindInverse.Location(gs)
-	gs.UniformMatrix4fv(location, 1, false, &sm.BindMatrixInverse[0])
-
-
-	//for idx, _ := range(sm.Skeleton.BoneMatrices) {
-	//	location = sm.Skeleton.uniBoneMatrices.LocationIdx(gs, int32(idx))
-	//	gs.UniformMatrix4fv(location, 1, false, &sm.Skeleton.BoneMatrices[idx][0])
-	//}
-
-	location = sm.Skeleton.uniBoneMatrices.Location(gs)
-	gs.UniformMatrix4fv(location, int32(sm.MaxBones()), false, &sm.Skeleton.BoneMatrices[0][0])
+	sm.uniBind.UniformMatrix4fv(gs, 1, false, &sm.BindMatrix[0])
+	sm.uniBindInverse.UniformMatrix4fv(gs, 1, false, &sm.BindMatrixInverse[0])
+	sm.Skeleton.uniBoneMatrices.UniformMatrix4fv(gs, int32(sm.MaxBones()), false, &sm.Skeleton.BoneMatrices[0][0])
 
 }
 
@@ -159,19 +148,16 @@ func (m *Mesh) RenderSetup(gs *gls.GLS, rinfo *core.RenderInfo) {
 
 	// Transfer uniform for model view matrix
 	mvm := m.ModelViewMatrix()
-	location := m.uniMVm.Location(gs)
-	gs.UniformMatrix4fv(location, 1, false, &mvm[0])
+	m.uniMVm.UniformMatrix4fv(gs, 1, false, &mvm[0])
 
 	// Transfer uniform for model view projection matrix
 	mvpm := m.ModelViewProjectionMatrix()
-	location = m.uniMVPm.Location(gs)
-	gs.UniformMatrix4fv(location, 1, false, &mvpm[0])
+	m.uniMVPm.UniformMatrix4fv(gs, 1, false, &mvpm[0])
 
 	// Calculates normal matrix and transfer uniform
 	var nm math32.Matrix3
 	nm.GetNormalMatrix(mvm)
-	location = m.uniNm.Location(gs)
-	gs.UniformMatrix3fv(location, 1, false, &nm[0])
+	m.uniNm.UniformMatrix3fv(gs, 1, false, &nm[0])
 }
 
 // Raycast checks intersections between this geometry and the specified raycaster
