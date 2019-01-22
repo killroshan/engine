@@ -69,14 +69,12 @@ func (u *Uniform) UniformMatrix4fv(gs *GLS, count int32, transpose bool, data *f
 	byteLength := count * 16 * 4
 	dst := (*[1 << 30]byte)(unsafe.Pointer(data))[:byteLength]
 
-	if len(u.cache) == 0 {
-		u.cache = make([]byte, byteLength, byteLength)
-	}
-
 	if bytes.Equal(u.cache, dst) {
 		return
 	}else{
-		//u.cache = u.cache[:]
+		if len(u.cache) == 0 {
+			u.cache = make([]byte, byteLength, byteLength)
+		}
 		copy(u.cache, dst)
 		location := u.Location(gs)
 		gs.UniformMatrix4fv(location, count, transpose, (*float32)(unsafe.Pointer(&u.cache[0])))

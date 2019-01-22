@@ -304,7 +304,7 @@ func (g *GLTF) NewAnimation(i int) (*animation.Animation, error) {
 			validComponentTypes = []int{FLOAT, BYTE, UNSIGNED_BYTE, SHORT, UNSIGNED_SHORT}
 			children := node.GetNode().Children()
 			if len(children) > 1 {
-				return nil, fmt.Errorf("animating meshes with more than a single primitive is not supported")
+				return nil, fmt.Errorf("animating meshes with more than a single primitive is not supported: %s", a.Name)
 			}
 			morphGeom := children[0].(graphic.IGraphic).IGeometry().(*geometry.MorphGeometry)
 			ch = animation.NewMorphChannel(morphGeom)
