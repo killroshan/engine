@@ -7,7 +7,6 @@ package gls
 import (
 	"fmt"
 	"unsafe"
-	"bytes"
 )
 
 // Uniform represents an OpenGL uniform.
@@ -18,7 +17,7 @@ type Uniform struct {
 	location  int32  // last cached location
 	lastIndex int32  // last index
 
-	cache     []byte // cached data
+	//cache     []byte // cached useless
 }
 
 // Init initializes this uniform location cache and sets its name.
@@ -68,33 +67,13 @@ func (u *Uniform) LocationIdx(gs *GLS, idx int32) int32 {
 func (u *Uniform) UniformMatrix4fv(gs *GLS, count int32, transpose bool, data *float32) {
 	byteLength := count * 16 * 4
 	dst := (*[1 << 30]byte)(unsafe.Pointer(data))[:byteLength]
-
-	if bytes.Equal(u.cache, dst) {
-		return
-	}else{
-		if len(u.cache) == 0 {
-			u.cache = make([]byte, byteLength, byteLength)
-		}
-		copy(u.cache, dst)
-		location := u.Location(gs)
-		gs.UniformMatrix4fv(location, count, transpose, (*float32)(unsafe.Pointer(&u.cache[0])))
-	}
+	location := u.Location(gs)
+	gs.UniformMatrix4fv(location, count, transpose, (*float32)(unsafe.Pointer(&dst[0])))
 }
 
 func (u *Uniform) UniformMatrix3fv(gs *GLS, count int32, transpose bool, data *float32) {
 	byteLength := count * 9 * 4
 	dst := (*[1 << 30]byte)(unsafe.Pointer(data))[:byteLength]
-
-	if len(u.cache) == 0 {
-		u.cache = make([]byte, byteLength, byteLength)
-	}
-
-	if bytes.Equal(u.cache, dst) {
-		return
-	}else{
-		//u.cache = u.cache[:]
-		copy(u.cache, dst)
-		location := u.Location(gs)
-		gs.UniformMatrix3fv(location, count, transpose, (*float32)(unsafe.Pointer(&u.cache[0])))
-	}
+	location := u.Location(gs)
+	gs.UniformMatrix3fv(location, count, transpose, (*float32)(unsafe.Pointer(&dst[0])))
 }

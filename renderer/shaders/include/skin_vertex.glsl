@@ -1,12 +1,13 @@
 
 #if defined SKINNED
 
-    transformed = (BindMatrix * vec4(VertexPosition, 1));
-    vec4 skinPos = vec4(0.0);
+    vec4 transformed_temp;
+    transformed_temp = (BindMatrix * vec4(transformed, 1));
+    transformed_temp = Weights.x * BoneMatrices[int(Joints.x)] * transformed_temp +
+                  Weights.y * BoneMatrices[int(Joints.y)] * transformed_temp +
+                  Weights.z * BoneMatrices[int(Joints.z)] * transformed_temp +
+                  Weights.w * BoneMatrices[int(Joints.w)] * transformed_temp;
+    transformed_temp = BindMatrixInverse * transformed_temp;
+    transformed = transformed_temp.xyz;
 
-    transformed = Weights.x * BoneMatrices[int(Joints.x)] * transformed +
-                  Weights.y * BoneMatrices[int(Joints.y)] * transformed +
-                  Weights.z * BoneMatrices[int(Joints.z)] * transformed +
-                  Weights.w * BoneMatrices[int(Joints.w)] * transformed;
-    transformed = BindMatrixInverse * transformed;
 #endif

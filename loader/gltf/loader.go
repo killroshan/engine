@@ -440,11 +440,15 @@ func (g *GLTF) NewMesh(mi int, skin *int) (core.INode, error) {
 				primitiveMesh := graphic.NewMesh(igeom, nil)
 				primitiveMesh.AddMaterial(grMat, 0, 0)
 				meshNode.Add(primitiveMesh)
+				primitiveMesh.SetName(fmt.Sprintf("%s[%d/%d]", meshData.Name, i+1,
+					len(meshData.Primitives)))
 			} else {
 				skinnedMesh := graphic.NewSkinnedMesh(igeom, nil)
 				grMat.GetMaterial().SetSkinned(true)
 				skinnedMesh.AddMaterial(grMat, 0, 0)
 				meshNode.Add(skinnedMesh)
+				skinnedMesh.SetName(fmt.Sprintf("%s[%d/%d]", meshData.Name, i+1,
+					len(meshData.Primitives)))
 			}
 		} else if mode == LINES {
 			meshNode.Add(graphic.NewLines(igeom, grMat))
@@ -854,7 +858,7 @@ func (g *GLTF) loadAccessorF32(ai int, usage string, validTypes []string, validC
 		return nil, err
 	}
 
-	return g.bytesToArrayF32(data, ac.ComponentType ,ac.Count*TypeSizes[ac.Type]), nil
+	return g.bytesToArrayF32(data, ac.ComponentType, ac.Count*TypeSizes[ac.Type]), nil
 }
 
 // loadAccessorBytes returns the base byte array used by an accessor.

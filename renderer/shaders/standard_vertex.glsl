@@ -45,9 +45,9 @@ void main() {
     }
 #endif
     FragTexcoord = texcoord;
-    vec3 vPosition = VertexPosition;
+    vec3 transformed = VertexPosition;
     #include <morphtarget_vertex> [MORPHTARGETS]
 
-    gl_Position = MVP * vec4(vPosition, 1.0);
+    gl_Position = MVP * vec4(transformed, 1.0);
 }
 
