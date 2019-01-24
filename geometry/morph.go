@@ -211,7 +211,5 @@ func (mg *MorphGeometry) RenderSetup(gs *gls.GLS) {
 		}
 	}
 
-	// Transfer texture info combined uniform
-	location := mg.uniWeights.Location(gs)
-	gs.Uniform1fv(location, int32(len(activeWeights)), activeWeights)
+	mg.uniWeights.Uniform1fv(gs, int32(len(activeWeights)), &activeWeights[0])
 }

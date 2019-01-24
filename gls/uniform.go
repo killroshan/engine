@@ -77,3 +77,10 @@ func (u *Uniform) UniformMatrix3fv(gs *GLS, count int32, transpose bool, data *f
 	location := u.Location(gs)
 	gs.UniformMatrix3fv(location, count, transpose, (*float32)(unsafe.Pointer(&dst[0])))
 }
+
+func (u *Uniform) Uniform1fv(gs *GLS, count int32, data *float32) {
+	byteLength := count * 1 * 4
+	dst := (*[1 << 30]byte)(unsafe.Pointer(data))[:byteLength]
+	location := u.Location(gs)
+	gs.Uniform1fv(location, count, (*float32)(unsafe.Pointer(&dst[0])))
+}

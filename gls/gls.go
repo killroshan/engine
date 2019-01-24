@@ -664,9 +664,9 @@ func (gs *GLS) UniformMatrix4fv(location int32, count int32, transpose bool, pm 
 }
 
 // Uniform1fv sets the value of one or many float uniform variables for the current program object.
-func (gs *GLS) Uniform1fv(location int32, count int32, v []float32) {
+func (gs *GLS) Uniform1fv(location int32, count int32, v *float32) {
 
-	C.glUniform1fv(C.GLint(location), C.GLsizei(count), (*C.GLfloat)(&v[0]))
+	C.glUniform1fv(C.GLint(location), C.GLsizei(count), (*C.GLfloat)(v))
 	gs.stats.Unisets++
 }
 
