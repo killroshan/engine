@@ -129,6 +129,16 @@ func (g *ControlFolderGroup) AddPanel(pan IPanel) {
 	g.node.Add(pan)
 }
 
+func (g *ControlFolderGroup) RemoveAll() {
+	for _, panel := range(g.node.items) {
+		g.RemovePanel(panel)
+	}
+}
+
+func (g *ControlFolderGroup) RemovePanel(pan IPanel) {
+	g.node.Remove(pan)
+}
+
 func (f *ControlFolder) newSlider(text string, sf, value float32) (IPanel, *Slider) {
 
 	// Creates container panel for the label and slider
