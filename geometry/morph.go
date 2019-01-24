@@ -190,6 +190,10 @@ func (mg *MorphGeometry) UpdateTargetAttributes(morphTargets []*Geometry) {
 	}
 }
 
+func (mg *MorphGeometry) GetTargets() []*Geometry{
+	return mg.targets
+}
+
 // RenderSetup is called by the renderer before drawing the geometry.
 func (mg *MorphGeometry) RenderSetup(gs *gls.GLS) {
 
