@@ -697,9 +697,9 @@ func (gs *GLS) Uniform3fvUP(location int32, count int32, v unsafe.Pointer) {
 }
 
 // Uniform4fv sets the value of one or many vec4 uniform variables for the current program object.
-func (gs *GLS) Uniform4fv(location int32, count int32, v []float32) {
+func (gs *GLS) Uniform4fv(location int32, count int32, v *float32) {
 
-	C.glUniform4fv(C.GLint(location), C.GLsizei(count), (*C.GLfloat)(&v[0]))
+	C.glUniform4fv(C.GLint(location), C.GLsizei(count), (*C.GLfloat)(v))
 	gs.stats.Unisets++
 }
 
