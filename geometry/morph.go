@@ -66,10 +66,14 @@ func (mg *MorphGeometry) AddMorphTargets(morphTargets ...*Geometry) {
 		mg.weights = append(mg.weights, 0)
 		// Calculate deltas for VertexPosition
 		vertexIdx := 0
-		baseVertices := mg.baseGeometry.VBO(gls.VertexPosition).Buffer()
+		baseVerticesVbo := mg.baseGeometry.VBO(gls.VertexPosition)
+		baseVerticesStride := baseVerticesVbo.Stride()
+		baseVerticesOffset := baseVerticesVbo.AttribOffset(gls.VertexPosition)
+		baseVertices := baseVerticesVbo.Buffer()
 		morphTargets[i].OperateOnVertices(func(vertex *math32.Vector3) bool {
 			var baseVertex math32.Vector3
-			baseVertices.GetVector3(vertexIdx*3, &baseVertex)
+			//vertexIdx * baseVerticesStride + baseVerticesOffset
+			baseVertices.GetVector3(vertexIdx * baseVerticesStride + baseVerticesOffset, &baseVertex)
 			vertex.Sub(&baseVertex)
 			vertexIdx++
 			return false
@@ -80,9 +84,11 @@ func (mg *MorphGeometry) AddMorphTargets(morphTargets ...*Geometry) {
 		baseNormalsVBO := mg.baseGeometry.VBO(gls.VertexNormal)
 		if baseNormalsVBO != nil {
 			baseNormals := baseNormalsVBO.Buffer()
+			baseNormalsStride := baseNormalsVBO.Stride()
+			baseNormalsOffset := baseNormalsVBO.AttribOffset(gls.VertexNormal)
 			morphTargets[i].OperateOnVertexNormals(func(normal *math32.Vector3) bool {
 				var baseNormal math32.Vector3
-				baseNormals.GetVector3(normalIdx*3, &baseNormal)
+				baseNormals.GetVector3(normalIdx * baseNormalsStride + baseNormalsOffset, &baseNormal)
 				normal.Sub(&baseNormal)
 				normalIdx++
 				return false
