@@ -14,22 +14,38 @@ import (
 
 type Skeleton struct {
 	Name                string
+	Root                core.INode
 	Bones               []core.INode
 	BoneMatricesInverse []math32.Matrix4
 	BoneMatrices        []math32.Matrix4
 	uniBoneMatrices     gls.Uniform
 }
 
-func NewSkeleton(name string, bones []core.INode, matricesInverse []math32.Matrix4) *Skeleton {
+func NewSkeleton(name string, root core.INode, bones []core.INode, matricesInverse []math32.Matrix4) *Skeleton {
 	if len(bones) != len(matricesInverse) {
 		panic("bones and matricesinverse mismatch")
 	}
 
+	bmi := make([]math32.Matrix4, 0, len(bones))
+	bmi = append(bmi, matricesInverse...)
+
 	return &Skeleton{
 		Name:                name,
 		Bones:               bones,
-		BoneMatricesInverse: matricesInverse,
+		Root:				 root,
+		BoneMatricesInverse: bmi,
 		BoneMatrices:        make([]math32.Matrix4, len(bones), len(bones)),
+	}
+}
+
+func (s *Skeleton) Clone() *Skeleton{
+	bmi := make([]math32.Matrix4, 0, len(s.Bones))
+	bmi = append(bmi, s.BoneMatricesInverse...)
+	return &Skeleton{
+		Name: s.Name,
+		Bones: s.Bones,
+		BoneMatricesInverse: bmi,
+		BoneMatrices: make([]math32.Matrix4, len(s.Bones), len(s.Bones)),
 	}
 }
 
@@ -39,6 +55,32 @@ func (s *Skeleton) update() {
 		mat = bone.GetNode().MatrixWorld()
 		s.BoneMatrices[i].MultiplyMatrices(&mat, &s.BoneMatricesInverse[i])
 	}
+}
+
+func (s *Skeleton) pose() {
+	for idx, bone := range s.Bones {
+		var mat math32.Matrix4
+		mat.GetInverse(&s.BoneMatricesInverse[idx])
+		bone.GetNode().SetMatrixWorld(&mat)
+	}
+
+	for _, bone := range s.Bones {
+		parent := bone.GetNode().Parent()
+		if parent != nil && parent.GetNode().IsBone == true {
+			var mat math32.Matrix4
+			parent_mat_world := parent.GetNode().MatrixWorld()
+			mat_world := bone.GetNode().MatrixWorld()
+			mat.GetInverse(&parent_mat_world)
+			mat.Multiply(&mat_world)
+			bone.GetNode().SetMatrix(&mat)
+			bone.GetNode().SetChanged(true)
+		} else {
+			mat := bone.GetNode().MatrixWorld()
+			bone.GetNode().SetMatrix(&mat)
+			bone.GetNode().SetChanged(true)
+		}
+	}
+
 }
 
 // Mesh is a Graphic with uniforms for the model, view, projection, and normal matrices.
@@ -66,6 +108,10 @@ func NewSkinnedMesh(igeom geometry.IGeometry, imat material.IMaterial) *SkinnedM
 	sm.uniBind.Init("BindMatrix")
 	sm.uniBindInverse.Init("BindMatrixInverse")
 	return sm
+}
+
+func (sm *SkinnedMesh) Pose() {
+	sm.Skeleton.pose()
 }
 
 func (sm *SkinnedMesh) Bind(skeleton *Skeleton) {

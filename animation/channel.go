@@ -8,6 +8,7 @@ import (
 	"github.com/g3n/engine/core"
 	"github.com/g3n/engine/math32"
 	"github.com/g3n/engine/geometry"
+	"github.com/g3n/engine/graphic"
 )
 
 // A Channel associates an animation parameter channel to an interpolation sampler
@@ -243,6 +244,72 @@ func NewScaleChannel(node core.INode) *ScaleChannel {
 	sc.SetInterpolationType(LINEAR)
 	return sc
 }
+
+type MorphChannelSet struct {
+	Channel
+	parent core.INode
+	targets []*geometry.MorphGeometry
+
+}
+
+func (mcs *MorphChannelSet) SetWeights(weights []float32) {
+	for _, target := range(mcs.targets) {
+		target.SetWeights(weights)
+	}
+
+}
+
+func NewMorphChannelSet(parent core.INode) *MorphChannelSet{
+	mcs := new(MorphChannelSet)
+	mcs.parent = parent
+
+	children := parent.GetNode().Children()
+	for _, child := range(children) {
+		mg := child.(graphic.IGraphic).IGeometry().(*geometry.MorphGeometry)
+		mcs.targets = append(mcs.targets, mg)
+	}
+	numWeights := len(mcs.targets[0].Weights())
+	mcs.updateInterpAction = func() {
+		// Update interpolation function
+		switch mcs.interpType {
+		case STEP:
+			mcs.interpAction = func(idx int, k float32) {
+				start := idx*numWeights
+				weights := mcs.values[start:start+numWeights]
+				mcs.SetWeights(weights)
+			}
+		case LINEAR:
+			mcs.interpAction = func(idx int, k float32) {
+				start1 := idx*numWeights
+				start2 := (idx+1)*numWeights
+				weights1 := mcs.values[start1:start1+numWeights]
+				weights2 := mcs.values[start2:start2+numWeights]
+				weightsNew := make([]float32, numWeights)
+				for i := range weights1 {
+					weightsNew[i] = weights1[i] + (weights2[i]-weights1[i])*k
+				}
+				mcs.SetWeights(weightsNew)
+			}
+		case CUBICSPLINE: // TODO
+			mcs.interpAction = func(idx int, k float32) {
+				start1 := idx*numWeights
+				start2 := (idx+1)*numWeights
+				weights1 := mcs.values[start1:start1+numWeights]
+				weights2 := mcs.values[start2:start2+numWeights]
+				weightsNew := make([]float32, numWeights)
+				for i := range weights1 {
+					weightsNew[i] = weights1[i] + (weights2[i]-weights1[i])*k
+				}
+				mcs.SetWeights(weightsNew)
+			}
+		}
+	}
+	mcs.SetInterpolationType(LINEAR)
+
+	return mcs
+
+}
+
 
 // MorphChannel is the IChannel for morph geometries.
 type MorphChannel struct {

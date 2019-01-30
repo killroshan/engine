@@ -40,6 +40,8 @@ type Node struct {
 	quaternion  math32.Quaternion // Node rotation specified as a Quaternion (relative to parent)
 	matrix      math32.Matrix4    // Local transform matrix. Contains all position/rotation/scale information (relative to parent)
 	matrixWorld math32.Matrix4    // World transform matrix. Contains all absolute position/rotation/scale information (i.e. relative to very top parent, generally the scene)
+
+	IsBone      bool
 }
 
 // NewNode returns a pointer to a new Node.
@@ -620,6 +622,10 @@ func (n *Node) SetMatrix(m *math32.Matrix4) {
 
 	n.matrix = *m
 	n.matrix.Decompose(&n.position, &n.quaternion, &n.scale)
+}
+
+func (n *Node) SetMatrixWorld(m *math32.Matrix4) {
+	n.matrixWorld = *m
 }
 
 // Matrix returns a copy of the local transformation matrix.

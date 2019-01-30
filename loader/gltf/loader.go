@@ -252,12 +252,17 @@ func (g *GLTF) NewSkeleton(i int) (*graphic.Skeleton, error) {
 	bones := make([]core.INode, 0, len(skinData.Joints))
 	bonesinverse := make([]math32.Matrix4, 0, len(skinData.Joints))
 	for idx, nodeIdx := range skinData.Joints {
-		bones = append(bones, g.Nodes[nodeIdx].node)
+		bone := g.Nodes[nodeIdx].node
+		bone.GetNode().IsBone = true
+		bones = append(bones, bone)
 		var mat math32.Matrix4
 		mat.FromArray(ibm, idx*16)
 		bonesinverse = append(bonesinverse, mat)
 	}
-	skinData.skin = graphic.NewSkeleton(skinData.Name, bones, bonesinverse)
+
+	// root
+	root := g.Nodes[skinData.Skeleton].node
+	skinData.skin = graphic.NewSkeleton(skinData.Name, root, bones, bonesinverse)
 	return skinData.skin, nil
 }
 
@@ -302,12 +307,13 @@ func (g *GLTF) NewAnimation(i int) (*animation.Animation, error) {
 		} else if target.Path == "weights" {
 			validTypes = []string{SCALAR}
 			validComponentTypes = []int{FLOAT, BYTE, UNSIGNED_BYTE, SHORT, UNSIGNED_SHORT}
-			children := node.GetNode().Children()
-			if len(children) > 1 {
-				return nil, fmt.Errorf("animating meshes with more than a single primitive is not supported: %s", a.Name)
-			}
-			morphGeom := children[0].(graphic.IGraphic).IGeometry().(*geometry.MorphGeometry)
-			ch = animation.NewMorphChannel(morphGeom)
+			//children := node.GetNode().Children()
+			////if len(children) > 1 {
+			////	return nil, fmt.Errorf("animating meshes with more than a single primitive is not supported: %s", a.Name)
+			////}
+			//morphGeom := children[2].(graphic.IGraphic).IGeometry().(*geometry.MorphGeometry)
+			//ch = animation.NewMorphChannel(morphGeom)
+			ch = animation.NewMorphChannelSet(node)
 		}
 
 		// TODO what if Input and Output accessors are interleaved? probably de-interleave in these 2 cases
@@ -370,6 +376,7 @@ func (g *GLTF) NewMesh(mi int, skin *int) (core.INode, error) {
 
 	// Create container node
 	meshNode := core.NewNode()
+	meshNode.SetName(meshData.Name)
 
 	for i := 0; i < len(meshData.Primitives); i++ {
 
@@ -447,6 +454,7 @@ func (g *GLTF) NewMesh(mi int, skin *int) (core.INode, error) {
 				grMat.GetMaterial().SetSkinned(true)
 				skinnedMesh.AddMaterial(grMat, 0, 0)
 				meshNode.Add(skinnedMesh)
+				//skinnedMesh.SetVisible(i == 2)
 				skinnedMesh.SetName(fmt.Sprintf("%s[%d/%d]", meshData.Name, i+1,
 					len(meshData.Primitives)))
 			}
@@ -989,19 +997,23 @@ func (g *GLTF) loadBuffer(bi int) ([]byte, error) {
 	return data, nil
 }
 
-func (g *GLTF) BindSkeletion() {
+func (g *GLTF) BindSkeletion() []*graphic.SkinnedMesh{
+	sks := make([]*graphic.SkinnedMesh, 0)
 	for i := range g.Nodes {
 		node := &g.Nodes[i]
 		if node.Skin != nil {
 			skeleton := g.Skins[*node.Skin].skin
+			//node.node.GetNode().Children()[0].(*graphic.SkinnedMesh).Bind(skeleton.Clone())
 			for _, child := range node.node.GetNode().Children() {
 				skinnedMesh, ok := child.(*graphic.SkinnedMesh)
 				if ok {
-					skinnedMesh.Bind(skeleton)
+					skinnedMesh.Bind(skeleton.Clone())
+					sks = append(sks, skinnedMesh)
 				}
 			}
 		}
 	}
+	return sks
 }
 
 // dataURL describes a decoded data url string.

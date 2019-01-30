@@ -130,9 +130,13 @@ func (g *ControlFolderGroup) AddPanel(pan IPanel) {
 }
 
 func (g *ControlFolderGroup) RemoveAll() {
-	for _, panel := range(g.node.items) {
-		g.RemovePanel(panel)
+	//for _, panel := range(g.node.items) {
+	//	g.RemovePanel(panel)
+	//}
+	for len(g.node.items) > 0 {
+		g.RemovePanel(g.node.items[0])
 	}
+
 }
 
 func (g *ControlFolderGroup) RemovePanel(pan IPanel) {
