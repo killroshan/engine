@@ -451,6 +451,7 @@ func (g *GLTF) NewMesh(mi int, skin *int) (core.INode, error) {
 					len(meshData.Primitives)))
 			} else {
 				skinnedMesh := graphic.NewSkinnedMesh(igeom, nil)
+				skinnedMesh.NormalizeSkinWeights()
 				grMat.GetMaterial().SetSkinned(true)
 				skinnedMesh.AddMaterial(grMat, 0, 0)
 				meshNode.Add(skinnedMesh)
@@ -997,7 +998,7 @@ func (g *GLTF) loadBuffer(bi int) ([]byte, error) {
 	return data, nil
 }
 
-func (g *GLTF) BindSkeletion() []*graphic.SkinnedMesh{
+func (g *GLTF) BindSkeletion() []*graphic.SkinnedMesh {
 	sks := make([]*graphic.SkinnedMesh, 0)
 	for i := range g.Nodes {
 		node := &g.Nodes[i]

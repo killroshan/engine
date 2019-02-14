@@ -262,6 +262,15 @@ func (g *Geometry) OperateOnVertexNormals(cb func(normal *math32.Vector3) bool) 
 	vbo.OperateOnVectors3(gls.VertexNormal, cb)
 }
 
+func (g *Geometry) OperateOnSkinWeights(cb func(normal *math32.Vector4) bool) {
+	vbo := g.VBO(gls.Weights)
+	if vbo == nil {
+		return
+	}
+
+	vbo.OperateOnVectors4(gls.Weights, cb)
+}
+
 // ReadVertexNormals iterates over all the vertex normals and calls
 // the specified callback function with the value of each normal.
 // The callback function returns false to continue or true to break.

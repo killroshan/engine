@@ -343,6 +343,23 @@ func (vbo *VBO) OperateOnVectors3(attribType AttribType, cb func(vec *math32.Vec
 	vbo.Update()
 }
 
+func (vbo *VBO) OperateOnVectors4(attribType AttribType, cb func(vec *math32.Vector4) bool) {
+	stride := vbo.Stride()
+	offset := vbo.AttribOffset(attribType)
+	buffer := vbo.Buffer()
+
+	var vec math32.Vector4
+	for i := offset; i < vbo.buffer.Size(); i += stride {
+		buffer.GetVector4(i, &vec)
+		brk := cb(&vec)
+		buffer.SetVector4(i, &vec)
+		if brk {
+			break
+		}
+	}
+	vbo.Update()
+}
+
 // ReadVectors3 iterates over all 3-float32 items for the specified attribute
 // and calls the specified callback function with the value of each item as a Vector3.
 // The callback function returns false to continue or true to break.

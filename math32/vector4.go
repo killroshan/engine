@@ -411,6 +411,10 @@ func (v *Vector4) Length() float32 {
 	return Sqrt(v.X*v.X + v.Y*v.Y + v.Z*v.Z + v.W*v.W)
 }
 
+func (v *Vector4) ManhattanLength() float32 {
+	return Abs(v.X) + Abs(v.Y) + Abs(v.Z) + Abs(v.W)
+}
+
 // Normalize normalizes this vector so its length will be 1.
 // Returns the pointer to this updated vector.
 func (v *Vector4) Normalize() *Vector4 {

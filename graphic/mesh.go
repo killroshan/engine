@@ -32,20 +32,20 @@ func NewSkeleton(name string, root core.INode, bones []core.INode, matricesInver
 	return &Skeleton{
 		Name:                name,
 		Bones:               bones,
-		Root:				 root,
+		Root:                root,
 		BoneMatricesInverse: bmi,
 		BoneMatrices:        make([]math32.Matrix4, len(bones), len(bones)),
 	}
 }
 
-func (s *Skeleton) Clone() *Skeleton{
+func (s *Skeleton) Clone() *Skeleton {
 	bmi := make([]math32.Matrix4, 0, len(s.Bones))
 	bmi = append(bmi, s.BoneMatricesInverse...)
 	return &Skeleton{
-		Name: s.Name,
-		Bones: s.Bones,
+		Name:                s.Name,
+		Bones:               s.Bones,
 		BoneMatricesInverse: bmi,
-		BoneMatrices: make([]math32.Matrix4, len(s.Bones), len(s.Bones)),
+		BoneMatrices:        make([]math32.Matrix4, len(s.Bones), len(s.Bones)),
 	}
 }
 
@@ -130,9 +130,9 @@ func (sm *SkinnedMesh) AddMaterial(imat material.IMaterial, start, count int) {
 }
 
 func (sm *SkinnedMesh) RenderSetup(gs *gls.GLS, rinfo *core.RenderInfo) {
-	sm.Skeleton.update()
 	sm.Mesh.RenderSetup(gs, rinfo)
 
+	sm.Skeleton.update()
 	sm.uniBind.UniformMatrix4fv(gs, 1, false, &sm.BindMatrix[0])
 	sm.uniBindInverse.UniformMatrix4fv(gs, 1, false, &sm.BindMatrixInverse[0])
 	sm.Skeleton.uniBoneMatrices.UniformMatrix4fv(gs, int32(sm.MaxBones()), false, &sm.Skeleton.BoneMatrices[0][0])
@@ -140,13 +140,25 @@ func (sm *SkinnedMesh) RenderSetup(gs *gls.GLS, rinfo *core.RenderInfo) {
 }
 
 func (sm *SkinnedMesh) UpdateMatrixWorld() {
-	sm.Mesh.Graphic.Node.UpdateMatrixWorld()
+	sm.GetNode().UpdateMatrixWorld()
 	temp := sm.MatrixWorld()
 	sm.BindMatrixInverse.GetInverse(&temp)
 }
 
 func (sm *SkinnedMesh) MaxBones() int {
 	return len(sm.Skeleton.Bones)
+}
+
+func (sm *SkinnedMesh) NormalizeSkinWeights() {
+	sm.GetGeometry().OperateOnSkinWeights(func(weights *math32.Vector4) bool {
+		length := weights.ManhattanLength()
+		if length == 0 {
+			weights.Set(1, 0, 0, 0)
+		} else {
+			weights.MultiplyScalar(1 / length)
+		}
+		return false
+	})
 }
 
 // NewMesh creates and returns a pointer to a mesh with the specified geometry and material.
