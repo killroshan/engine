@@ -846,13 +846,52 @@ func (g *GLTF) loadAccessorU32(ai int, usage string, validTypes []string, validC
 	return g.bytesToArrayU32(data, ac.ComponentType, ac.Count)
 }
 
+func (g * GLTF) loadSparseAccessorF32(ac *Accessor) (math32.ArrayF32, error){
+	if ac.Sparse == nil {
+		return nil, fmt.Errorf("accessor %v is not sparse", ac.Name)
+	}
+
+	totalBytes := ac.Count * TypeSizes[ac.Type] * ComponentSizes[FLOAT]
+	bytes := make([]byte, totalBytes, totalBytes)
+	data := g.bytesToArrayF32(bytes, FLOAT, ac.Count)
+
+	if index_bytes, err := g.loadBufferView(g.BufferViews[ac.Sparse.Indices.BufferView]); err != nil{
+		return nil, err
+	}else{
+		index_bytes = index_bytes[ac.Sparse.Indices.ByteOffset:]
+		// load indices
+		if indices, err := g.bytesToArrayU32(index_bytes, ac.Sparse.Indices.ComponentType, ac.Sparse.Count); err != nil{
+			return nil, err
+		}else{
+			// load values
+			if values_bytes, err := g.loadBufferView(g.BufferViews[ac.Sparse.Values.BufferView]); err != nil{
+				return nil, err
+			}else{
+				values := g.bytesToArrayF32(values_bytes, ac.ComponentType, ac.Sparse.Count)
+				for i := 0; i < ac.Sparse.Count; i++ {
+					dst_start_index := int(indices[i]) * TypeSizes[ac.Type]
+					src_start_index := i * TypeSizes[ac.Type]
+					for j := 0; j < TypeSizes[ac.Type]; j++ {
+						data[dst_start_index + j] = values[src_start_index + j]
+					}
+				}
+				return data, nil
+			}
+		}
+	}
+}
+
 // loadAccessorF32 loads data from the specified accessor and performs validation of the Type and ComponentType.
 func (g *GLTF) loadAccessorF32(ai int, usage string, validTypes []string, validComponentTypes []int) (math32.ArrayF32, error) {
 
 	// Get Accessor for the specified index
 	ac := g.Accessors[ai]
 	if ac.BufferView == nil {
-		return nil, fmt.Errorf("Accessor.BufferView == nil NOT SUPPORTED")
+		if data, err := g.loadSparseAccessorF32(&ac); err != nil{
+			return nil, err
+		}else{
+			return data, nil
+		}
 	}
 
 	// Validate type and component type

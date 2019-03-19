@@ -8,6 +8,7 @@ package gltf
 import (
 	"github.com/g3n/engine/core"
 	"github.com/g3n/engine/graphic"
+	"unsafe"
 )
 
 // GLTF is the root object for a glTF asset.
@@ -293,9 +294,12 @@ type Sparse struct {
 	Indices struct {
 		BufferView int
 		ComponentType int
+		ByteOffset int
+
 	}                  // Index array of size count that points to those accessor attributes that deviate from their initialization value. Indices must strictly increase. Required.
 	Values struct {
 		BufferView int
+		ByteOffset int
 	}                  // Array of size count times number of components, storing the displaced accessor attributes pointed by indices. Substituted values must have the same componentType and number of components as the base accessor. Required.
 	Extensions map[string]interface{} // Dictionary object with extension-specific objects. Not required.
 	Extras     interface{}            // Application-specific data. Not required.
@@ -377,6 +381,15 @@ const (
 	UNSIGNED_INT   = 5125
 	FLOAT          = 5126
 )
+
+var ComponentSizes = map[int] int {
+	BYTE: int(unsafe.Sizeof(byte(0))),
+	UNSIGNED_BYTE: int(unsafe.Sizeof(byte(0))),
+	SHORT: int(unsafe.Sizeof(int16(0))),
+	UNSIGNED_SHORT : int(unsafe.Sizeof(uint16(0))),
+	UNSIGNED_INT: int(unsafe.Sizeof(uint32(0))),
+	FLOAT: int(unsafe.Sizeof(float32(0))),
+}
 
 // TODO Create table mapping componentType to size in bytes?
 
