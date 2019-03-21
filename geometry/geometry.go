@@ -210,6 +210,7 @@ func (g *Geometry) SetAttributeName(atype gls.AttribType, attribName string) {
 	vbo := g.VBO(atype)
 	if vbo != nil {
 		vbo.Attrib(atype).Name = attribName
+		vbo.Attrib(atype).Location = -1 // need rebind vbo
 	}
 }
 

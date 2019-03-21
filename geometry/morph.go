@@ -146,7 +146,7 @@ func (mg *MorphGeometry) ActiveMorphTargets() ([]*Geometry, []float32) {
 		sort.Slice(sortedWeights, func(i, j int) bool {
 			return mg.weights[i] > mg.weights[j]
 		})
-		return sortedMorphTargets, sortedWeights
+		return sortedMorphTargets[:NumMorphTargets], sortedWeights[:NumMorphTargets]
 	}
 }
 

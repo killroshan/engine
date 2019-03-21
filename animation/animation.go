@@ -17,13 +17,19 @@ type Animation struct {
 	minTime  float32    // Minimum time value across all channels
 	maxTime  float32    // Maximum time value across all channels
 	channels []IChannel // List of channels
+	Scale    float32
 }
 
 // NewAnimation creates and returns a pointer to a new Animation object.
 func NewAnimation() *Animation {
 
 	anim := new(Animation)
+	anim.Scale = 1
 	return anim
+}
+
+func (anim *Animation) SetDuration(dur float32) {
+	anim.Scale = (anim.maxTime - anim.minTime) / dur
 }
 
 // SetName sets the animation name.
@@ -87,7 +93,7 @@ func (anim *Animation) Update(delta float32) {
 	}
 
 	// Check if input is less than minimum
-	anim.time = anim.time + delta
+	anim.time = anim.time + delta * anim.Scale
 	if anim.time < anim.minTime {
 		return
 	}

@@ -25,6 +25,7 @@ type VBOattrib struct {
 	ByteOffset  uint32     // Byte offset from the start of the VBO
 	NumElements int32      // Number of elements
 	ElementType uint32     // Type of the element (e.g. FLOAT, INT, UNSIGNED_SHORT, etc...)
+	Location    int32
 }
 
 // AttribType is the functional type of a vbo attribute.
@@ -102,6 +103,7 @@ func (vbo *VBO) AddAttrib(atype AttribType) *VBO {
 		ByteOffset:  uint32(vbo.StrideSize()),
 		NumElements: attribTypeSizeMap[atype],
 		ElementType: FLOAT,
+		Location: -1,
 	})
 	return vbo
 }
@@ -115,6 +117,7 @@ func (vbo *VBO) AddAttribOffset(atype AttribType, byteOffset uint32) *VBO {
 		ByteOffset:  byteOffset,
 		NumElements: attribTypeSizeMap[atype],
 		ElementType: FLOAT,
+		Location: -1,
 	})
 	return vbo
 }
@@ -128,6 +131,7 @@ func (vbo *VBO) AddCustomAttrib(name string, itemSize int32) *VBO {
 		ByteOffset:  uint32(vbo.StrideSize()),
 		NumElements: itemSize,
 		ElementType: FLOAT,
+		Location: -1,
 	})
 	return vbo
 }
@@ -141,6 +145,7 @@ func (vbo *VBO) AddCustomAttribOffset(name string, itemSize int32, byteOffset ui
 		ByteOffset:  byteOffset,
 		NumElements: itemSize,
 		ElementType: FLOAT,
+		Location: -1,
 	})
 	return vbo
 }
@@ -292,21 +297,24 @@ func (vbo *VBO) Transfer(gs *GLS) {
 	if vbo.gs == nil {
 		vbo.handle = gs.GenBuffer()
 		gs.BindBuffer(ARRAY_BUFFER, vbo.handle)
-		// Calculates stride size
-		strideSize := vbo.StrideSize()
-		// For each attribute
-		for _, attrib := range vbo.attribs {
-			// Get attribute location in the current program
+		vbo.gs = gs // this indicates that the vbo was initialized
+	}
+
+	gs.BindBuffer(ARRAY_BUFFER, vbo.handle)
+	strideSize := vbo.StrideSize()
+	for idx, _ := range vbo.attribs {
+		attrib := &vbo.attribs[idx]
+		if attrib.Location < 0 {
 			loc := gs.prog.GetAttribLocation(attrib.Name)
 			if loc < 0 {
 				log.Warn("Attribute not found: %v", attrib.Name)
 				continue
 			}
-			// Enables attribute and sets its stride and offset in the buffer
 			gs.EnableVertexAttribArray(uint32(loc))
 			gs.VertexAttribPointer(uint32(loc), attrib.NumElements, attrib.ElementType, false, int32(strideSize), attrib.ByteOffset)
+			attrib.Location = loc
+			//log.Warn("bind attrib name %v: %v", attrib.Name, attrib.Location)
 		}
-		vbo.gs = gs // this indicates that the vbo was initialized
 	}
 
 	// If nothing has changed, no need to transfer data to OpenGL
